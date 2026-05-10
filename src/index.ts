@@ -49,41 +49,43 @@ export function createDiff<T extends GenericRecord | unknown[]>(oldData: T, newD
   assert(typeIs(oldData, "table"), "attempt to create diff of non-table objects");
   assert(typeIs(newData, "table"), "attempt to create diff of non-table objects");
 
-  let changed: GenericRecord | undefined;
-  let removed: GenericRecord | undefined;
+  let changed: GenericRecord = {};
+  let removed: GenericRecord = {};
   for (const [key] of pairs(oldData)) {
     if (newData[key as never] !== undefined) continue;
-
-    removed ??= {};
     removed[key] = true;
   }
 
   for (const [key, newValue] of pairs(newData)) {
     const oldValue = oldData[key as never] as GenericRecord;
     if (oldValue === undefined) {
-      changed ??= {} as never;
       changed[key] = newValue;
       continue;
     }
 
     if ((!typeIs(oldValue, "table") || !typeIs(newValue, "table")) && oldValue !== newValue) {
-      changed ??= {} as never;
       changed[key] = newValue;
       continue;
     }
 
     const childDiff = createDiff(oldValue!, newValue as GenericRecord);
     if ("changed" in childDiff) {
-      changed ??= {} as never;
       changed[key] = childDiff.changed ?? newValue;
     }
     if ("removed" in childDiff) {
-      removed ??= {};
       removed[key] = childDiff.removed;
     }
   }
 
-  return { changed: changed as never, removed: removed as never };
+  let changedCount = 0;
+  let removedCount = 0;
+  for (const _ of pairs(changed)) changedCount++;
+  for (const _ of pairs(removed)) removedCount++;
+
+  return {
+    changed: changedCount > 0 ? changed as never : undefined,
+    removed: removedCount > 0 ? removed as never : undefined
+  };
 }
 
 export function applyDiff<T extends {}>(base: T, diff: Diff<T>): T {
