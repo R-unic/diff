@@ -15,6 +15,17 @@ class CreateDiffTest {
   }
 
   @Fact
+  public "shallow array starting from undefined"(): void {
+    const a: number[] = [];
+    const b = [1];
+    const diff = createDiff(a, b);
+    Assert.undefined(diff.removed);
+    Assert.defined(diff.changed);
+    Assert.defined(diff.changed[0]);
+    Assert.equal(1, diff.changed[0]);
+  }
+
+  @Fact
   public "shallow array changes"(): void {
     const a = [69];
     const b = [420];
@@ -34,6 +45,29 @@ class CreateDiffTest {
     Assert.defined(diff.removed);
     Assert.defined(diff.removed[0]);
     Assert.true(diff.removed[0]);
+  }
+
+  @Fact
+  public "deep array starting from undefined"(): void {
+    type T = [number, [[number, number[]]]];
+    const a: T = [69, [[1000, []]]];
+    const b: T = [69, [[1000, [1337]]]];
+    const diff = createDiff(a, b);
+    Assert.undefined(diff.removed);
+    Assert.defined(diff.changed);
+    Assert.undefined(diff.changed[0])
+
+    const shallowArrayChange = diff.changed[1] as Diff<T[1]>["changed"];
+    Assert.defined(shallowArrayChange);
+
+    const nestedArrayChange1 = shallowArrayChange[0] as Diff<T[1][0]>["changed"];
+    Assert.defined(nestedArrayChange1);
+    Assert.undefined(nestedArrayChange1[0]);
+
+    const nestedArrayChange2 = nestedArrayChange1[1] as Diff<T[1][0][1]>["changed"];
+    Assert.defined(nestedArrayChange2);
+    Assert.defined(nestedArrayChange2[0]);
+    Assert.equal(1337, nestedArrayChange2[0]);
   }
 
   @Fact
@@ -87,6 +121,17 @@ class CreateDiffTest {
   }
 
   @Fact
+  public "shallow object starting from undefined"(): void {
+    const a: Partial<typeof b> = {};
+    const b = { foo: 69 };
+    const diff = createDiff(a, b);
+    Assert.undefined(diff.removed);
+    Assert.defined(diff.changed);
+    Assert.defined(diff.changed.foo);
+    Assert.equal(69, diff.changed.foo);
+  }
+
+  @Fact
   public "shallow object changes"(): void {
     const a = { foo: 123 };
     const b = { foo: 69 };
@@ -106,6 +151,21 @@ class CreateDiffTest {
     Assert.defined(diff.removed);
     Assert.defined(diff.removed.foo);
     Assert.true(diff.removed.foo);
+  }
+
+  @Fact
+  public "deep object starting from undefined"(): void {
+    const a: { foo: number, bar: { baz: { n?: number } } } = { foo: 123, bar: { baz: {} } };
+    const b = { foo: 123, bar: { baz: { n: 42 } } };
+    const diff = createDiff(a, b);
+    Assert.undefined(diff.removed);
+    Assert.defined(diff.changed);
+    Assert.undefined(diff.changed.foo);
+    Assert.defined(diff.changed.bar)
+    Assert.defined(diff.changed.bar.baz)
+    Assert.defined(diff.changed.bar.baz)
+    Assert.defined(diff.changed.bar.baz.n);
+    Assert.equal(42, diff.changed.bar.baz.n);
   }
 
   @Fact

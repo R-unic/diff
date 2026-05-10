@@ -16,6 +16,14 @@ class ApplyDiffTest {
   }
 
   @Fact
+  public "shallow array starting from undefined"(): void {
+    const base: number[] = [];
+    const diff = { changed: [69] };
+    const patched = applyDiff(base, diff);
+    Assert.equal(69, patched[0]);
+  }
+
+  @Fact
   public "shallow array changes"(): void {
     const base = [123];
     const diff = { changed: [69] };
@@ -29,6 +37,17 @@ class ApplyDiffTest {
     const diff: Diff<typeof base> = { removed: [true] };
     const patched = applyDiff(base, diff);
     Assert.undefined(patched[0]);
+  }
+
+  @Fact
+  public "deep array starting from undefined"(): void {
+    type T = [number, [[number, number[]]]];
+    const base: T = [69, [[1000, []]]]
+    const diff: Diff<T> = { changed: [undefined, [[undefined, [69]]]] };
+    const patched = applyDiff(base, diff);
+    Assert.equal(69, patched[0]);
+    Assert.equal(1000, patched[1][0][0]);
+    Assert.equal(69, patched[1][0][1][0]);
   }
 
   @Fact
@@ -54,6 +73,14 @@ class ApplyDiffTest {
   }
 
   @Fact
+  public "shallow object starting from undefined"(): void {
+    const base: { foo?: number } = {};
+    const diff = { changed: { foo: 69 } };
+    const patched = applyDiff(base, diff);
+    Assert.equal(69, patched.foo);
+  }
+
+  @Fact
   public "shallow object changes"(): void {
     const base = { foo: 123 };
     const diff = { changed: { foo: 69 } };
@@ -67,6 +94,15 @@ class ApplyDiffTest {
     const diff = { removed: { foo: true } } as const;
     const patched = applyDiff(base, diff);
     Assert.undefined(patched.foo);
+  }
+
+  @Fact
+  public "deep object starting from undefined"(): void {
+    const base: { foo: number, bar: { baz: { n?: number } } } = { foo: 123, bar: { baz: {} } };
+    const diff: Diff<typeof base> = { changed: { bar: { baz: { n: 69 } } } };
+    const patched = applyDiff(base, diff);
+    Assert.equal(123, patched.foo);
+    Assert.equal(69, patched.bar.baz.n);
   }
 
   @Fact
