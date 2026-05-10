@@ -105,18 +105,19 @@ export function applyDiff<T extends {}>(base: T, diff: Diff<T>): T {
     }
   }
 
-  if (diff.changed !== undefined) { }
-  for (const [key, value] of pairs(diff.changed as Record<keyof T, DeepPartial<T>>)) {
-    const baseValue = base[key as keyof T];
-    if (!typeIs(value, "table") || !typeIs(baseValue, "table")) {
-      result[key] = value;
-      continue;
-    }
+  if (diff.changed !== undefined) {
+    for (const [key, value] of pairs(diff.changed as Record<keyof T, DeepPartial<T>>)) {
+      const baseValue = base[key as keyof T];
+      if (!typeIs(value, "table") || !typeIs(baseValue, "table")) {
+        result[key] = value;
+        continue;
+      }
 
-    result[key] = applyDiff(baseValue, {
-      changed: value,
-      removed: diff.removed?.[key as never]
-    });
+      result[key] = applyDiff(baseValue, {
+        changed: value,
+        removed: diff.removed?.[key as never]
+      });
+    }
   }
 
   return result as T;
