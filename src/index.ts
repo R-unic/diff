@@ -37,8 +37,6 @@ type DeepKeys<T> = T extends readonly (infer U)[]
     readonly [K in NonSymbolKeys<T>]?: RemovalTag<T[K]>;
   }
 
-type X = DeepKeys<number[]>
-
 export interface Diff<T> {
   readonly changed?: DeepPartial<T>;
   readonly removed?: DeepKeys<T>;
@@ -90,10 +88,7 @@ export function createDiff<T extends GenericRecord | unknown[]>(oldData: T, newD
 
 export function applyDiff<T extends {}>(base: T, diff: Diff<T>): T {
   assert(typeIs(base, "table"), "attempt to apply diff to non-table object");
-
-  const result: GenericRecord = {};
-  for (const [key, value] of pairs(base))
-    result[key] = value;
+  const result = table.clone<GenericRecord>(base);
 
   if (diff.removed !== undefined) {
     for (const [key, value] of pairs(diff.removed as Record<keyof T, true | DeepKeys<T>>)) {
