@@ -25,8 +25,8 @@ class CreateDiffTest {
     const diff = createDiff(a, b);
     Assert.undefined(diff.changed);
     Assert.defined(diff.removed);
-    Assert.defined(diff.removed[0 + 1]);
-    Assert.true(diff.removed[0 + 1]);
+    Assert.defined(diff.removed[0]);
+    Assert.true(diff.removed[0]);
   }
 
   @Fact
@@ -60,23 +60,23 @@ class CreateDiffTest {
     const diff = createDiff(a, b);
     Assert.undefined(diff.changed);
     Assert.defined(diff.removed);
-    Assert.undefined(diff.removed[0 + 1]);
-    Assert.defined(diff.removed[1 + 1])
+    Assert.undefined(diff.removed[0]);
+    Assert.defined(diff.removed[1])
 
-    const shallowArrayChange = diff.removed[1 + 1] as Diff<T[1]>["removed"];
+    const shallowArrayChange = diff.removed[1] as Diff<T[1]>["removed"];
     Assert.notEqual(true, shallowArrayChange);
     Assert.defined(shallowArrayChange);
 
-    const nestedArrayChange1 = shallowArrayChange[0 + 1] as Diff<T[1][0]>["removed"];
+    const nestedArrayChange1 = shallowArrayChange[0] as Diff<T[1][0]>["removed"];
     Assert.notEqual(true, nestedArrayChange1);
     Assert.defined(nestedArrayChange1);
-    Assert.undefined(nestedArrayChange1[0 + 1]);
+    Assert.undefined(nestedArrayChange1[0]);
 
-    const nestedArrayChange2 = nestedArrayChange1[1 + 1] as Diff<T[1][0][1]>["removed"];
+    const nestedArrayChange2 = nestedArrayChange1[1] as Diff<T[1][0][1]>["removed"];
     Assert.notEqual(true, nestedArrayChange1);
     Assert.defined(nestedArrayChange2);
-    Assert.defined(nestedArrayChange2[0 + 1]);
-    Assert.true(nestedArrayChange2[0 + 1]);
+    Assert.defined(nestedArrayChange2[0]);
+    Assert.true(nestedArrayChange2[0]);
   }
 
   @Fact

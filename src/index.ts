@@ -29,11 +29,15 @@ type DeepPartial<T> =
   ? { readonly [K in NonSymbolKeys<T>]?: DeepPartial<T[K]> }
   : T;
 
-type DeepKeys<T> = {
-  readonly [K in NonSymbolKeys<T>]?: true | (
-    T[K] extends object ? DeepKeys<T[K]> : never
-  );
-};
+type RemovalTag<T> = true | (T extends object ? DeepKeys<T> : never);
+
+type DeepKeys<T> = T extends readonly (infer U)[]
+  ? readonly (RemovalTag<U> | undefined)[]
+  : {
+    readonly [K in NonSymbolKeys<T>]?: RemovalTag<T[K]>;
+  }
+
+type X = DeepKeys<number[]>
 
 export interface Diff<T> {
   readonly changed?: DeepPartial<T>;
