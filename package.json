@@ -1,6 +1,6 @@
 {
   "name": "@rbxts/diff",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Calculate diffs between objects and apply diffs to objects",
   "author": "runicly",
   "main": "out/init.lua",

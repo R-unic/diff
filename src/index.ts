@@ -16,7 +16,6 @@ type IsTuple<T> = T extends readonly unknown[]
   : true
   : false;
 
-
 type NonSymbolKeys<T> = Exclude<keyof T, symbol>;
 type DeepPartial<T> =
   T extends Primitive
@@ -25,13 +24,18 @@ type DeepPartial<T> =
   ? IsTuple<T> extends true
   ? { readonly [K in keyof T]?: DeepPartial<T[K]> }
   : readonly DeepPartial<U>[]
+  : T extends ReadonlyMap<infer K, infer V>
+  ? ReadonlyMap<DeepPartial<K>, DeepPartial<V>>
   : T extends object
   ? { readonly [K in NonSymbolKeys<T>]?: DeepPartial<T[K]> }
   : T;
 
 type RemovalTag<T> = true | (T extends object ? DeepKeys<T> : never);
 
-type DeepKeys<T> = T extends readonly (infer U)[]
+type DeepKeys<T> =
+  T extends ReadonlyMap<infer K, infer V>
+  ? ReadonlyMap<K, RemovalTag<V> | undefined>
+  : T extends readonly (infer U)[]
   ? readonly (RemovalTag<U> | undefined)[]
   : {
     readonly [K in NonSymbolKeys<T>]?: RemovalTag<T[K]>;
@@ -42,7 +46,7 @@ export interface Diff<T> {
   readonly removed?: DeepKeys<T>;
 }
 
-export function createDiff<T extends GenericRecord | unknown[]>(oldData: T, newData: T): Diff<T> {
+export function createDiff<T extends {}>(oldData: T, newData: T): Diff<T> {
   if (oldData === newData)
     return {};
 
