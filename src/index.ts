@@ -1,5 +1,5 @@
 declare function pairs<K extends string | number, V>(
-  object: Readonly<Record<K, V>>,
+  object: Readonly<Record<K, V> | V[]>,
 ): IterableFunction<LuaTuple<[Exclude<K, undefined>, Exclude<V, undefined>]>>;
 
 type GenericRecord = Record<string | number, unknown>;
@@ -9,12 +9,22 @@ type Primitive =
   | boolean
   | undefined;
 
+type Length<T> = T extends { length: infer N extends number } ? N : never;
+type IsTuple<T> = T extends readonly unknown[]
+  ? Length<T> extends never
+  ? false
+  : true
+  : false;
+
+
 type NonSymbolKeys<T> = Exclude<keyof T, symbol>;
 type DeepPartial<T> =
   T extends Primitive
   ? T
   : T extends readonly (infer U)[]
-  ? readonly DeepPartial<U>[]
+  ? IsTuple<T> extends true
+  ? { readonly [K in keyof T]?: DeepPartial<T[K]> }
+  : readonly DeepPartial<U>[]
   : T extends object
   ? { readonly [K in NonSymbolKeys<T>]?: DeepPartial<T[K]> }
   : T;
@@ -30,7 +40,7 @@ export interface Diff<T> {
   readonly removed?: DeepKeys<T>;
 }
 
-export function createDiff<T extends GenericRecord>(oldData: T, newData: T): Diff<T> {
+export function createDiff<T extends GenericRecord | unknown[]>(oldData: T, newData: T): Diff<T> {
   if (oldData === newData)
     return {};
 
@@ -40,14 +50,14 @@ export function createDiff<T extends GenericRecord>(oldData: T, newData: T): Dif
   let changed: GenericRecord | undefined;
   let removed: GenericRecord | undefined;
   for (const [key] of pairs(oldData)) {
-    if (newData[key] !== undefined) continue;
+    if (newData[key as never] !== undefined) continue;
 
     removed ??= {};
     removed[key] = true;
   }
 
   for (const [key, newValue] of pairs(newData)) {
-    const oldValue = oldData[key] as GenericRecord;
+    const oldValue = oldData[key as never] as GenericRecord;
     if (oldValue === undefined) {
       changed ??= {} as never;
       changed[key] = newValue;
