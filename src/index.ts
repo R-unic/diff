@@ -114,10 +114,8 @@ export function applyDiff<T extends {}>(base: T, diff: Diff<T>): T {
         continue;
       }
 
-      result[key] = applyDiff(baseValue, {
-        changed: value,
-        removed: diff.removed?.[key as never]
-      });
+      const removed = diff.removed?.[key as never];
+      result[key] = applyDiff(baseValue, { changed: value, removed });
     }
   }
 

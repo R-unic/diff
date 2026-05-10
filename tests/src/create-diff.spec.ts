@@ -169,6 +169,33 @@ class CreateDiffTest {
   }
 
   @Fact
+  public "object removal & change"(): void {
+    type T = { foo?: number, bar: { baz: { n: number, sigma?: string } } };
+    const a: T = { foo: 123, bar: { baz: { n: 69, sigma: "yas" } } };
+    const b: T = { bar: { baz: { n: 42 } } };
+    const diff = createDiff(a, b);
+    Assert.defined(diff.removed);
+    Assert.defined(diff.changed);
+    Assert.defined(diff.removed.bar);
+    Assert.true(diff.removed.foo);
+    Assert.notEqual(true, diff.removed.bar);
+
+    const bar = diff.removed.bar as NonNullable<Diff<typeof a.bar>["removed"]>;
+    Assert.defined(bar.baz);
+    Assert.notEqual(true, bar.baz);
+
+    const baz = bar.baz as NonNullable<Diff<typeof a.bar.baz>["removed"]>;
+    Assert.defined(baz.sigma);
+    Assert.true(baz.sigma);
+    Assert.undefined(diff.changed.foo);
+    Assert.defined(diff.changed.bar)
+    Assert.defined(diff.changed.bar.baz)
+    Assert.defined(diff.changed.bar.baz)
+    Assert.defined(diff.changed.bar.baz.n);
+    Assert.equal(42, diff.changed.bar.baz.n);
+  }
+
+  @Fact
   public "deep object changes"(): void {
     const a = { foo: 123, bar: { baz: { n: 69 } } };
     const b = { foo: 123, bar: { baz: { n: 42 } } };

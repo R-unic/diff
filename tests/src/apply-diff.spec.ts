@@ -106,6 +106,17 @@ class ApplyDiffTest {
   }
 
   @Fact
+  public "object removal & change"(): void {
+    type T = { foo?: number, bar: { baz: { n: number, sigma?: string } } };
+    const base: T = { foo: 123, bar: { baz: { n: 420, sigma: "yas" } } };
+    const diff: Diff<T> = { changed: { foo: 420, bar: { baz: { n: 69 } } }, removed: { bar: { baz: { sigma: true } } } };
+    const patched = applyDiff(base, diff);
+    Assert.equal(420, patched.foo);
+    Assert.equal(69, patched.bar.baz.n);
+    Assert.undefined(patched.bar.baz.sigma);
+  }
+
+  @Fact
   public "deep object changes"(): void {
     const base = { foo: 123, bar: { baz: { n: 420 } } };
     const diff: Diff<typeof base> = { changed: { bar: { baz: { n: 69 } } } };
