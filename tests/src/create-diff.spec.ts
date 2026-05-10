@@ -8,6 +8,13 @@ class CreateDiffTest {
   }
 
   @Fact
+  public "empty"(): void {
+    const diff = createDiff({}, {});
+    Assert.undefined(diff.removed);
+    Assert.undefined(diff.changed);
+  }
+
+  @Fact
   public "shallow array changes"(): void {
     const a = [69];
     const b = [420];

@@ -8,6 +8,14 @@ class ApplyDiffTest {
   }
 
   @Fact
+  public "empty"(): void {
+    const base = { foo: 123 };
+    const diff = {};
+    const patched = applyDiff(base, diff);
+    Assert.equal(123, patched.foo);
+  }
+
+  @Fact
   public "shallow array changes"(): void {
     const base = [123];
     const diff = { changed: [69] };
