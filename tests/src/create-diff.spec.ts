@@ -12,6 +12,11 @@ class CreateDiffTest {
     const diff = createDiff({}, {});
     Assert.undefined(diff.removed);
     Assert.undefined(diff.changed);
+
+    const a = 1 as never;
+    const diff2 = createDiff(a, a);
+    Assert.undefined(diff2.removed);
+    Assert.undefined(diff2.changed);
   }
 
   @Fact
