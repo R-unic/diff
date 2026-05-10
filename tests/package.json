@@ -20,6 +20,6 @@
     "typescript": "=5.5.3"
   },
   "dependencies": {
-    "@rbxts/my-package": "file:../out"
+    "@rbxts/diff": "file:../out"
   }
 }

@@ -75,6 +75,8 @@ export function createDiff<T extends GenericRecord>(oldData: T, newData: T): Dif
 }
 
 export function applyDiff<T extends {}>(base: T, diff: Diff<T>): T {
+  assert(typeIs(base, "table"), "attempt to apply diff to non-table object");
+
   const result: GenericRecord = {};
   for (const [key, value] of pairs(base))
     result[key] = value;
