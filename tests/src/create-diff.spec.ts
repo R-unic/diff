@@ -4,7 +4,8 @@ import { createDiff, type Diff } from "@rbxts/diff";
 class CreateDiffTest {
   @Fact
   public "non-table objects error"(): void {
-    Assert.throws(() => createDiff(1 as never, 2 as never), "attempt to create diff of non-table objects");
+    Assert.throws(() => createDiff(undefined!, {}), "attempt to create diff of non-table objects");
+    Assert.throws(() => createDiff({}, undefined!), "attempt to create diff of non-table objects");
   }
 
   @Fact
@@ -233,6 +234,17 @@ class CreateDiffTest {
     const baz = bar.baz as NonNullable<Diff<typeof a.bar.baz>["removed"]>;
     Assert.defined(baz.n);
     Assert.true(baz.n);
+  }
+
+  @Fact
+  public "same object field different other field"(): void {
+    const a = { foo: 123, bar: { baz: { n: 69 } } };
+    const b = { foo: 69, bar: { baz: { n: 69 } } };
+    const diff = createDiff(a, b);
+    Assert.defined(diff.changed);
+    Assert.undefined(diff.removed);
+    Assert.undefined(diff.changed.bar);
+    Assert.equal(69, diff.changed.foo);
   }
 }
 
