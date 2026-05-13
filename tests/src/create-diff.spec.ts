@@ -21,6 +21,22 @@ class CreateDiffTest {
   }
 
   @Fact
+  public "ignoring keys"(): void {
+    const diff = createDiff(
+      { id: 1, foo: 420, bar: 69 },
+      { id: 2, foo: 69 },
+      { ignoreKeys: ["id"] }
+    );
+
+    Assert.defined(diff.removed);
+    Assert.defined(diff.changed);
+    Assert.undefined(diff.removed.id);
+    Assert.undefined(diff.changed.id);
+    Assert.defined(diff.removed.bar);
+    Assert.defined(diff.changed.foo);
+  }
+
+  @Fact
   public "shallow array starting from undefined"(): void {
     const a: number[] = [];
     const b = [1];

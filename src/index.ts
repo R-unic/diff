@@ -46,9 +46,9 @@ export interface Diff<T> {
   readonly removed?: DeepKeys<T>;
 }
 
-export interface DiffOptions {
+export interface DiffOptions<K> {
   readonly equals?: (a: unknown, b: unknown) => boolean;
-  readonly ignoreKeys?: unknown[];
+  readonly ignoreKeys?: K[];
 }
 
 function isEmpty(record: GenericRecord): boolean {
@@ -62,7 +62,7 @@ export function createDiff<T extends {}>(
   {
     equals = (a, b) => a === b,
     ignoreKeys = []
-  }: DiffOptions = {}
+  }: DiffOptions<T extends GenericRecord ? keyof T : unknown> = {}
 ): Diff<T> {
   if (oldData === newData)
     return {};
@@ -74,13 +74,13 @@ export function createDiff<T extends {}>(
   let changed: GenericRecord = {};
   let removed: GenericRecord = {};
   for (const [key] of oldData as unknown as Map<string, unknown>) {
-    if (keyIgnoreSet.has(key)) continue;
+    if (keyIgnoreSet.has(key as never)) continue;
     if (key in newData) continue;
     removed[key] = true;
   }
 
   for (const [key, newValue] of newData as unknown as Map<string, unknown>) {
-    if (keyIgnoreSet.has(key)) continue;
+    if (keyIgnoreSet.has(key as never)) continue;
 
     const oldValue = (oldData as GenericRecord)[key];
     if (typeIs(oldValue, "table") && typeIs(newValue, "table")) {
