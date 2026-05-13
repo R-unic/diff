@@ -46,29 +46,45 @@ export interface Diff<T> {
   readonly removed?: DeepKeys<T>;
 }
 
+export interface DiffOptions {
+  readonly equals?: (a: unknown, b: unknown) => boolean;
+  readonly ignoreKeys?: unknown[];
+}
+
 function isEmpty(record: GenericRecord): boolean {
   for (const _ of pairs(record)) return false;
   return true;
 }
 
-export function createDiff<T extends {}>(oldData: T, newData: T): Diff<T> {
+export function createDiff<T extends {}>(
+  oldData: T,
+  newData: T,
+  {
+    equals = (a, b) => a === b,
+    ignoreKeys = []
+  }: DiffOptions = {}
+): Diff<T> {
   if (oldData === newData)
     return {};
 
+  const keyIgnoreSet = new Set(ignoreKeys);
   assert(typeIs(oldData, "table"), "attempt to create diff of non-table objects");
   assert(typeIs(newData, "table"), "attempt to create diff of non-table objects");
 
   let changed: GenericRecord = {};
   let removed: GenericRecord = {};
   for (const [key] of oldData as unknown as Map<string, unknown>) {
+    if (keyIgnoreSet.has(key)) continue;
     if (key in newData) continue;
     removed[key] = true;
   }
 
-  for (const [key, newValue] of pairs(newData)) {
-    const oldValue = oldData[key as never] as GenericRecord;
+  for (const [key, newValue] of newData as unknown as Map<string, unknown>) {
+    if (keyIgnoreSet.has(key)) continue;
+
+    const oldValue = (oldData as GenericRecord)[key];
     if (typeIs(oldValue, "table") && typeIs(newValue, "table")) {
-      const childDiff = createDiff(oldValue, newValue as GenericRecord);
+      const childDiff = createDiff(oldValue, newValue);
       if ("changed" in childDiff) {
         changed[key] = childDiff.changed;
       }
@@ -78,7 +94,7 @@ export function createDiff<T extends {}>(oldData: T, newData: T): Diff<T> {
       continue;
     }
 
-    if (oldValue === newValue) continue;
+    if (equals(oldValue, newValue)) continue;
     changed[key] = newValue;
   }
 
@@ -95,7 +111,7 @@ export function applyDiff<T extends {}>(base: T, diff: Diff<T>): T {
   if (diff.removed !== undefined) {
     for (const [key, value] of pairs(diff.removed as Record<keyof T, true | DeepKeys<T>>)) {
       if (value === true) {
-        result[key] = undefined!;
+        delete result[key];
         continue;
       }
 
