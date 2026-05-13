@@ -60,7 +60,7 @@ class CreateDiffTest {
     const diff = createDiff(a, b);
     Assert.undefined(diff.removed);
     Assert.defined(diff.changed);
-    Assert.undefined(diff.changed[0])
+    Assert.undefined(diff.changed[0]);
 
     const shallowArrayChange = diff.changed[1] as Diff<T[1]>["changed"];
     Assert.defined(shallowArrayChange);
@@ -83,7 +83,7 @@ class CreateDiffTest {
     const diff = createDiff(a, b);
     Assert.undefined(diff.removed);
     Assert.defined(diff.changed);
-    Assert.undefined(diff.changed[0])
+    Assert.undefined(diff.changed[0]);
 
     const shallowArrayChange = diff.changed[1] as Diff<T[1]>["changed"];
     Assert.defined(shallowArrayChange);
@@ -107,7 +107,7 @@ class CreateDiffTest {
     Assert.undefined(diff.changed);
     Assert.defined(diff.removed);
     Assert.undefined(diff.removed[0]);
-    Assert.defined(diff.removed[1])
+    Assert.defined(diff.removed[1]);
 
     const shallowArrayChange = diff.removed[1] as Diff<T[1]>["removed"];
     Assert.notEqual(true, shallowArrayChange);
@@ -160,22 +160,22 @@ class CreateDiffTest {
 
   @Fact
   public "deep object starting from undefined"(): void {
-    const a: { foo: number, bar: { baz: { n?: number } } } = { foo: 123, bar: { baz: {} } };
+    const a: { foo: number, bar: { baz: { n?: number; }; }; } = { foo: 123, bar: { baz: {} } };
     const b = { foo: 123, bar: { baz: { n: 42 } } };
     const diff = createDiff(a, b);
     Assert.undefined(diff.removed);
     Assert.defined(diff.changed);
     Assert.undefined(diff.changed.foo);
-    Assert.defined(diff.changed.bar)
-    Assert.defined(diff.changed.bar.baz)
-    Assert.defined(diff.changed.bar.baz)
+    Assert.defined(diff.changed.bar);
+    Assert.defined(diff.changed.bar.baz);
+    Assert.defined(diff.changed.bar.baz);
     Assert.defined(diff.changed.bar.baz.n);
     Assert.equal(42, diff.changed.bar.baz.n);
   }
 
   @Fact
   public "object removal & change"(): void {
-    type T = { foo?: number, bar: { baz: { n: number, sigma?: string } } };
+    type T = { foo?: number, bar: { baz: { n: number, sigma?: string; }; }; };
     const a: T = { foo: 123, bar: { baz: { n: 69, sigma: "yas" } } };
     const b: T = { bar: { baz: { n: 42 } } };
     const diff = createDiff(a, b);
@@ -193,9 +193,9 @@ class CreateDiffTest {
     Assert.defined(baz.sigma);
     Assert.true(baz.sigma);
     Assert.undefined(diff.changed.foo);
-    Assert.defined(diff.changed.bar)
-    Assert.defined(diff.changed.bar.baz)
-    Assert.defined(diff.changed.bar.baz)
+    Assert.defined(diff.changed.bar);
+    Assert.defined(diff.changed.bar.baz);
+    Assert.defined(diff.changed.bar.baz);
     Assert.defined(diff.changed.bar.baz.n);
     Assert.equal(42, diff.changed.bar.baz.n);
   }
@@ -208,9 +208,9 @@ class CreateDiffTest {
     Assert.undefined(diff.removed);
     Assert.defined(diff.changed);
     Assert.undefined(diff.changed.foo);
-    Assert.defined(diff.changed.bar)
-    Assert.defined(diff.changed.bar.baz)
-    Assert.defined(diff.changed.bar.baz)
+    Assert.defined(diff.changed.bar);
+    Assert.defined(diff.changed.bar.baz);
+    Assert.defined(diff.changed.bar.baz);
     Assert.defined(diff.changed.bar.baz.n);
     Assert.equal(42, diff.changed.bar.baz.n);
   }

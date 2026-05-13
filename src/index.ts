@@ -9,7 +9,7 @@ type Primitive =
   | boolean
   | undefined;
 
-type Length<T> = T extends { length: infer N extends number } ? N : never;
+type Length<T> = T extends { length: infer N extends number; } ? N : never;
 type IsTuple<T> = T extends readonly unknown[]
   ? Length<T> extends never
   ? false
@@ -39,11 +39,16 @@ type DeepKeys<T> =
   ? readonly (RemovalTag<U> | undefined)[]
   : {
     readonly [K in NonSymbolKeys<T>]?: RemovalTag<T[K]>;
-  }
+  };
 
 export interface Diff<T> {
   readonly changed?: DeepPartial<T>;
   readonly removed?: DeepKeys<T>;
+}
+
+function isEmpty(record: GenericRecord): boolean {
+  for (const _ of pairs(record)) return false;
+  return true;
 }
 
 export function createDiff<T extends {}>(oldData: T, newData: T): Diff<T> {
@@ -55,40 +60,31 @@ export function createDiff<T extends {}>(oldData: T, newData: T): Diff<T> {
 
   let changed: GenericRecord = {};
   let removed: GenericRecord = {};
-  for (const [key] of pairs(oldData)) {
-    if (newData[key as never] !== undefined) continue;
+  for (const [key] of oldData as unknown as Map<string, unknown>) {
+    if (key in newData) continue;
     removed[key] = true;
   }
 
   for (const [key, newValue] of pairs(newData)) {
     const oldValue = oldData[key as never] as GenericRecord;
-    if (oldValue === undefined) {
-      changed[key] = newValue;
+    if (typeIs(oldValue, "table") && typeIs(newValue, "table")) {
+      const childDiff = createDiff(oldValue, newValue as GenericRecord);
+      if ("changed" in childDiff) {
+        changed[key] = childDiff.changed;
+      }
+      if ("removed" in childDiff) {
+        removed[key] = childDiff.removed;
+      }
       continue;
     }
 
-    if ((!typeIs(oldValue, "table") || !typeIs(newValue, "table")) && oldValue !== newValue) {
-      changed[key] = newValue;
-      continue;
-    }
-
-    const childDiff = createDiff(oldValue!, newValue as GenericRecord);
-    if ("changed" in childDiff) {
-      changed[key] = childDiff.changed ?? newValue;
-    }
-    if ("removed" in childDiff) {
-      removed[key] = childDiff.removed;
-    }
+    if (oldValue === newValue) continue;
+    changed[key] = newValue;
   }
 
-  let changedCount = 0;
-  let removedCount = 0;
-  for (const _ of pairs(changed)) changedCount++;
-  for (const _ of pairs(removed)) removedCount++;
-
   return {
-    changed: changedCount > 0 ? changed as never : undefined,
-    removed: removedCount > 0 ? removed as never : undefined
+    changed: isEmpty(changed) ? undefined : changed as never,
+    removed: isEmpty(removed) ? undefined : removed as never
   };
 }
 
