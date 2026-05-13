@@ -56,6 +56,23 @@ function isEmpty(record: GenericRecord): boolean {
   return true;
 }
 
+/**
+ * Creates a diff object by comparing two data structures.
+ *
+ * @param oldData - The original data object
+ * @param newData - The new data object to compare against
+ * @param options - Configuration options for diff generation
+ * @param options.equals - Custom equality function for comparing values (default: `===`)
+ * @param options.ignoreKeys - Array of keys to exclude from diff comparison (shallow, root level only)
+ * @returns A Diff object containing changed and removed keys, or an empty object if no differences
+ *
+ * @example
+ * const diff = createDiff(
+ *   { a: 1, b: 2 },
+ *   { a: 1, b: 3, c: 4 }
+ * );
+ * // Returns: { changed: { b: 3, c: 4 } }
+ */
 export function createDiff<T extends {}>(
   oldData: T,
   newData: T,
@@ -84,7 +101,7 @@ export function createDiff<T extends {}>(
 
     const oldValue = (oldData as GenericRecord)[key];
     if (typeIs(oldValue, "table") && typeIs(newValue, "table")) {
-      const childDiff = createDiff(oldValue, newValue);
+      const childDiff = createDiff(oldValue, newValue, { equals });
       if ("changed" in childDiff) {
         changed[key] = childDiff.changed;
       }
@@ -104,6 +121,20 @@ export function createDiff<T extends {}>(
   };
 }
 
+/**
+ * Applies a diff to a base object and returns the modified result.
+ *
+ * @param base - The base object to apply the diff to
+ * @param diff - The diff object containing changes and removals
+ * @returns A new object with the diff applied to the base
+ *
+ * @example
+ * const result = applyDiff(
+ *   { a: 1, b: 2, c: 3 },
+ *   { changed: { b: 5 }, removed: { c: true } }
+ * );
+ * // Returns: { a: 1, b: 5 }
+ */
 export function applyDiff<T extends {}>(base: T, diff: Diff<T>): T {
   assert(typeIs(base, "table"), "attempt to apply diff to non-table object");
   const result = table.clone<GenericRecord>(base);
